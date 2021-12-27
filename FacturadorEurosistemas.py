@@ -131,6 +131,8 @@ def eurosistemas():
                 medicacion = materiales_sap[i]
                 cantidad_medicacion = cantidades[i]
             else:
+                print(f"FACTURANDO AF: {codigo_afiliado_anterior}")
+                print(f"Cantidades: {l_cantidades} | Materiales: {l_materiales_sap}")
                 nombre_y_apellido = nom_ape_afiliados[i - 1]
                 nombre = nombre_y_apellido.split()[0]
                 apellido = nombre_y_apellido.split()[1]

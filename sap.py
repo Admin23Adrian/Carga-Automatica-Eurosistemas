@@ -299,7 +299,7 @@ def meteteensap(sesionsap, clase_de_pedido, canal, sector, solicitante, dispone,
     
     except:
         time.sleep(3)
-        return pedido
+        return ped_final
         # session.findById("wnd[0]/tbar[0]/okcd").text = "/N"
         # session.findById("wnd[0]").sendVKey(0)
     
