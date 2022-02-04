@@ -176,7 +176,7 @@ def meteteensap(sesionsap, clase_de_pedido, canal, sector, solicitante, dispone,
             # session.findById("wnd[0]/usr/tabsTABS/tabpTAB_PED/ssubTABS_SCA:ZDMSD_TOMA_PEDIDO:0101/subSUBS_TRAB:ZDMSD_TOMA_PEDIDO:0111/tblZDMSD_TOMA_PEDIDOTC_CARRITO/txtGS_CARRITO-COD_EXTERNO[15," + str(i) + "]").setFocus()
             # session.findById("wnd[0]/usr/tabsTABS/tabpTAB_PED/ssubTABS_SCA:ZDMSD_TOMA_PEDIDO:0101/subSUBS_TRAB:ZDMSD_TOMA_PEDIDO:0111/tblZDMSD_TOMA_PEDIDOTC_CARRITO/txtGS_CARRITO-COD_EXTERNO[15," + str(i) + "]").caretPosition = 4
 
-        session.findById("wnd[0]/usr/tabsTABS/tabpTAB_PED/ssubTABS_SCA:ZDMSD_TOMA_PEDIDO:0101/cmbZSD_TOMA_CABEC-LIFSK").key = "PZ"
+        session.findById("wnd[0]/usr/tabsTABS/tabpTAB_PED/ssubTABS_SCA:ZDMSD_TOMA_PEDIDO:0101/cmbZSD_TOMA_CABEC-LIFSK").key = " "
         session.findById("wnd[0]/usr/tabsTABS/tabpTAB_ENT").select()
 
         session.findById("wnd[0]/usr/tabsTABS/tabpTAB_ENT/ssubTABS_SCA:ZDMSD_TOMA_PEDIDO:0102/ctxtGS_ENTREGA-DISPONE_ID").text = dispone

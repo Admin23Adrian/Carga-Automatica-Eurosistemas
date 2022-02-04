@@ -13,51 +13,6 @@ import time
 import openpyxl
 from openpyxl import load_workbook
 
-def ingresarsap(usuario_sap,contrasena_sap):
-    try:
-
-        pythoncom.CoInitialize()
-        path = r"C:\Program Files (x86)\SAP\FrontEnd\SAPgui\saplogon.exe"
-        subprocess.Popen(path)
-        time.sleep(2)
-
-        SapGuiAuto = win32com.client.GetObject('SAPGUI')
-        if not type(SapGuiAuto) == win32com.client.CDispatch:
-            return
-
-        application = SapGuiAuto.GetScriptingEngine
-        if not type(application) == win32com.client.CDispatch:
-            SapGuiAuto = None
-            return
-        connection = application.OpenConnection("QAS", True)
-
-        if not type(connection) == win32com.client.CDispatch:
-            application = None
-            SapGuiAuto = None
-            return
-
-        session = connection.Children(0)
-        if not type(session) == win32com.client.CDispatch:
-            connection = None
-            application = None
-            SapGuiAuto = None
-            return
-        time.sleep(1)
-        session.findById("wnd[0]/usr/txtRSYST-BNAME").text = usuario_sap
-        time.sleep(0.3)
-        session.findById("wnd[0]/usr/pwdRSYST-BCODE").text = contrasena_sap
-        time.sleep(0.3)
-        session.findById("wnd[0]").sendVKey(0)
-        time.sleep(0.3)
-    except:
-        print(sys.exc_info()[0] + "Usuario y/o contraseña incorrecto. Vuelva a intentar.")
-
-    finally:
-        session = None
-        connection = None
-        application = None
-        SapGuiAuto = None
-
 
 def meteteensap(sesionsap, nro_afiliado):
     
@@ -86,7 +41,7 @@ def meteteensap(sesionsap, nro_afiliado):
         return
     
     try:
-        print(f"** Consultando afiliado: {nro_afiliado}")
+        print(f"** Consultando afiliado en SAP: {nro_afiliado}")
         session.findById("wnd[0]").maximize
         session.findById("wnd[0]/tbar[0]/okcd").text = "/nz_sd_estados_hist"
         session.findById("wnd[0]").sendVKey(0)
@@ -107,52 +62,56 @@ def meteteensap(sesionsap, nro_afiliado):
         try:
             for i in range(0, 4000):
                 dispone = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(i, "DESTINA")
-                nombre_destinatario = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(i, "DESTINA_NAME")
+                nombre_farmacia = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(i, "DESTINA_NAME")
                 domicilio = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(i, "DOMICILIO")
                 localidad = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(i, "LOCALIDAD")
                 cont += 1
         except:
             print(f"Entrando en except de sap. {str(cont - 1)}")
+            codificacion_afiliado = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(cont - 1, "AFILIADO_NOM")
+            nro_cliente = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(cont - 1, "CLIENTE")
+            nombre_cliente = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(cont - 1, "CLIENTE_NOM")
+            centro = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(cont - 1, "VSTEL")
+            turno = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(cont - 1, "ZZTURNO")
             dispone = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(cont - 1, "DESTINA")
-            nombre_destinatario = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(cont - 1, "DESTINA_NAME")
+            nombre_farmacia = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(cont - 1, "DESTINA_NAME")
             domicilio = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(cont - 1, "DOMICILIO")
             localidad = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(cont - 1, "LOCALIDAD")
-        
-        
-        print(f"Dispones: {dispone}")
-        print(f"Nombre de farmacia: {nombre_destinatario}")
-        print(f"Domicilio: {domicilio}")
-        print(f"Localidad: {localidad}")
-        print("")
-
-        return dispone, nombre_destinatario, domicilio, localidad
-    except:
-        print("Error en el script.. Programa finalizado!")
+            provincia = session.findById("wnd[0]/usr/cntlGRID1/shellcont/shell").getcellvalue(cont - 1, "PROVINCIA")
+            
+        return codificacion_afiliado, nro_afiliado, nro_cliente, nombre_cliente, centro, turno, dispone, nombre_farmacia, domicilio, localidad, provincia
+    
+    except Exception as e:
+        print("Error en el script.. Programa finalizado!", e)
 
 
 def completar_datos_excel(ruta_excel):
 
-    excel = load_workbook(ruta_excel)
     excel = load_workbook(ruta_excel, data_only=True)
     hoja = excel["Padron Nico"]
+    hoja_padron = excel["AFILIADOS_SACADOS_SAP_SIN_FARMA"]
+    max_rows_excel = hoja.max_row
     try:
-        for i in range(2, 675):
-            print(f"**** {hoja[f'A{i}'].value}****")
-            if hoja[f"A{i}"].value != None and hoja[f"D{i}"].value == "NO":
-                nro_afiliado = hoja[f"A{i}"].value
-                datos_farma = meteteensap(0, f"{nro_afiliado}")
-
-                dispone = datos_farma[0]
-                farmacia = datos_farma[1]
-                domicilio = datos_farma[2]
-                localidad = datos_farma[3]
-
-                hoja[f"D{i}"].value = str(farmacia)
-                hoja[f"E{i}"].value = str(dispone)
-                hoja[f"F{i}"].value = str(domicilio)
-                hoja[f"G{i}"].value = str(localidad)
-            else:
-                print("Nada")
+        print("INGRESANDO A DATOS DEL EXCEL. HOJA: Padron Nico")
+        for i in range(2, max_rows_excel + 1):
+            print(f"{hoja[f'D{str(i)}'].value}")
+            nro_afiliado = hoja[f"A{i}"].value
+            try:
+                codificacion_afiliado, nro_afiliado, nro_cliente, nombre_cliente, centro, turno, dispone, nombre_farmacia, domicilio, localidad, provincia = meteteensap(0, f"{nro_afiliado}")
+                print(codificacion_afiliado, nro_afiliado, nro_cliente, nombre_cliente, centro, turno, dispone, nombre_farmacia, domicilio, localidad, provincia)
+                hoja_padron[f"A{i}"].value = codificacion_afiliado
+                hoja_padron[f"B{i}"].value = codificacion_afiliado
+                hoja_padron[f"C{i}"].value = nro_afiliado
+                hoja_padron[f"D{i}"].value = nro_cliente
+                hoja_padron[f"E{i}"].value = nombre_cliente
+                hoja_padron[f"F{i}"].value = centro
+                hoja_padron[f"G{i}"].value = turno
+                hoja_padron[f"H{i}"].value = dispone
+                hoja_padron[f"I{i}"].value = domicilio
+                hoja_padron[f"J{i}"].value = localidad
+                hoja_padron[f"K{i}"].value = provincia
+                print("----------------------------------------------------------------\n")
+            except:
                 continue
     except Exception as e:
         print("Algo salio mal en el excel.", e)
